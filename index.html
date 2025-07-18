@@ -20,6 +20,93 @@
             touch-action: manipulation;
         }
 
+        /* Page d'accueil */
+        .home-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .home-screen.hidden {
+            display: none;
+        }
+
+        .welcome-title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .start-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.4);
+        }
+
+        .best-scores {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            min-width: 300px;
+        }
+
+        .best-scores h3 {
+            margin-bottom: 15px;
+            color: #fee140;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .score-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Écran de jeu */
+        .game-screen {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .game-screen.active {
+            display: flex;
+        }
+
         .header {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -41,6 +128,20 @@
             background: rgba(255, 255, 255, 0.2);
             padding: 5px 10px;
             border-radius: 15px;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .game-container {
@@ -208,7 +309,24 @@
             margin-bottom: 20px;
         }
 
+        .new-best-score {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 15px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
         @media (max-width: 600px) {
+            .welcome-title {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
             .grid {
                 grid-template-columns: repeat(8, 1fr);
             }
@@ -230,24 +348,55 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="score">Score: <span id="score">0</span></div>
-        <div class="mode" id="currentMode">Mode: Classique</div>
+    <!-- Page d'accueil -->
+    <div class="home-screen" id="homeScreen">
+        <div class="welcome-title">💖 Bon Courage Maman ! 💖</div>
+        <div class="subtitle">Prête pour le défi Ten Pairs ?</div>
+        
+        <div class="best-scores">
+            <h3>🏆 Meilleurs Scores</h3>
+            <div id="bestScoresList">
+                <div class="score-item">
+                    <span>1er place</span>
+                    <span id="score1">0</span>
+                </div>
+                <div class="score-item">
+                    <span>2ème place</span>
+                    <span id="score2">0</span>
+                </div>
+                <div class="score-item">
+                    <span>3ème place</span>
+                    <span id="score3">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <button class="start-btn" onclick="startGame()">🎮 Commencer à Jouer</button>
+        <button class="start-btn" onclick="resetBestScores()">🔄 Réinitialiser Scores</button>
     </div>
 
-    <div class="game-container">
-        <div class="board">
-            <div class="grid" id="grid"></div>
+    <!-- Écran de jeu -->
+    <div class="game-screen" id="gameScreen">
+        <div class="header">
+            <button class="back-btn" onclick="goHome()">← Accueil</button>
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="mode" id="currentMode">Mode: Classique</div>
         </div>
 
-        <div class="controls">
-            <button class="btn add" onclick="addNewRow()">+ Ajouter</button>
-            <button class="btn hint" onclick="useHint()">💡 Indice</button>
-            <button class="btn undo" onclick="undoMove()">↩️ Annuler</button>
-            <button class="btn mode-btn" onclick="changeMode()">🎮 Mode</button>
-        </div>
+        <div class="game-container">
+            <div class="board">
+                <div class="grid" id="grid"></div>
+            </div>
 
-        <div class="status" id="status">Sélectionnez deux nombres identiques ou qui font 10</div>
+            <div class="controls">
+                <button class="btn add" onclick="addNewRow()">+ Ajouter</button>
+                <button class="btn hint" onclick="useHint()">💡 Indice</button>
+                <button class="btn undo" onclick="undoMove()">↩️ Annuler</button>
+                <button class="btn mode-btn" onclick="changeMode()">🎮 Mode</button>
+            </div>
+
+            <div class="status" id="status">Sélectionnez deux nombres identiques ou qui font 10</div>
+        </div>
     </div>
 
     <div class="modal" id="winModal">
@@ -256,7 +405,9 @@
             <h2>Félicitations Maman ! 🏆</h2>
             <p>Vous avez vidé tout le plateau !</p>
             <p>Score final: <span id="finalScore">0</span></p>
+            <div id="newBestScoreMessage"></div>
             <button class="btn" onclick="newGame()">Nouvelle Partie</button>
+            <button class="btn" onclick="goHome()">Retour Accueil</button>
         </div>
     </div>
 
@@ -268,6 +419,75 @@
         let moveHistory = [];
         let hints = 3;
         let level = 1;
+        let bestScores = [0, 0, 0];
+
+        // Charger les meilleurs scores
+        function loadBestScores() {
+            const saved = JSON.parse(localStorage.getItem('tenPairsBestScores') || '[0,0,0]');
+            bestScores = saved;
+            updateBestScoresDisplay();
+        }
+
+        // Sauvegarder les meilleurs scores
+        function saveBestScores() {
+            localStorage.setItem('tenPairsBestScores', JSON.stringify(bestScores));
+        }
+
+        // Mettre à jour l'affichage des meilleurs scores
+        function updateBestScoresDisplay() {
+            document.getElementById('score1').textContent = bestScores[0];
+            document.getElementById('score2').textContent = bestScores[1];
+            document.getElementById('score3').textContent = bestScores[2];
+        }
+
+        // Vérifier si c'est un nouveau meilleur score
+        function checkNewBestScore(newScore) {
+            let position = -1;
+            
+            if (newScore > bestScores[0]) {
+                bestScores[2] = bestScores[1];
+                bestScores[1] = bestScores[0];
+                bestScores[0] = newScore;
+                position = 1;
+            } else if (newScore > bestScores[1]) {
+                bestScores[2] = bestScores[1];
+                bestScores[1] = newScore;
+                position = 2;
+            } else if (newScore > bestScores[2]) {
+                bestScores[2] = newScore;
+                position = 3;
+            }
+            
+            if (position > 0) {
+                saveBestScores();
+                updateBestScoresDisplay();
+                return position;
+            }
+            return -1;
+        }
+
+        // Réinitialiser les meilleurs scores
+        function resetBestScores() {
+            if (confirm('Êtes-vous sûre de vouloir réinitialiser tous les meilleurs scores ?')) {
+                bestScores = [0, 0, 0];
+                saveBestScores();
+                updateBestScoresDisplay();
+            }
+        }
+
+        // Démarrer le jeu
+        function startGame() {
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.add('active');
+            newGame();
+        }
+
+        // Retour à l'accueil
+        function goHome() {
+            document.getElementById('homeScreen').classList.remove('hidden');
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('winModal').style.display = 'none';
+        }
 
         // Initialisation du plateau
         function initializeBoard() {
@@ -579,6 +799,17 @@
         // Afficher le modal de victoire
         function showWinModal() {
             document.getElementById('finalScore').textContent = score;
+            
+            // Vérifier si c'est un nouveau meilleur score
+            const position = checkNewBestScore(score);
+            const messageDiv = document.getElementById('newBestScoreMessage');
+            
+            if (position > 0) {
+                messageDiv.innerHTML = `<div class="new-best-score">🎉 Nouveau record ! ${position}${position === 1 ? 'er' : 'ème'} place ! 🎉</div>`;
+            } else {
+                messageDiv.innerHTML = '';
+            }
+            
             document.getElementById('winModal').style.display = 'block';
         }
 
@@ -589,8 +820,7 @@
 
         // Initialisation du jeu
         window.onload = function() {
-            initializeBoard();
-            updateStatus("Bienvenue dans Ten Pairs ! Sélectionnez deux nombres identiques ou qui font 10 ! 💖");
+            loadBestScores();
         };
     </script>
 </body>
