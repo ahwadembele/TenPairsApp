@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ten Pairs - Jeu pour Maman</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            touch-action: manipulation;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .score {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .mode {
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .board {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 3px;
+            justify-content: center;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            min-height: 35px;
+        }
+
+        .cell.number {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-color: #3498db;
+        }
+
+        .cell.number:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell.selected {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            border-color: #e74c3c;
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell.valid-pair {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-color: #27ae60;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .cell.empty {
+            background: transparent;
+            border: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.add {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn.hint {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .btn.undo {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .btn.mode-btn {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .status {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .celebration {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: repeat(8, 1fr);
+            }
+            
+            .cell {
+                font-size: 14px;
+                min-height: 30px;
+            }
+            
+            .controls {
+                gap: 5px;
+            }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="mode" id="currentMode">Mode: Classique</div>
+    </div>
+
+    <div class="game-container">
+        <div class="board">
+            <div class="grid" id="grid"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn add" onclick="addNewRow()">+ Ajouter</button>
+            <button class="btn hint" onclick="useHint()">💡 Indice</button>
+            <button class="btn undo" onclick="undoMove()">↩️ Annuler</button>
+            <button class="btn mode-btn" onclick="changeMode()">🎮 Mode</button>
+        </div>
+
+        <div class="status" id="status">Sélectionnez deux nombres identiques ou qui font 10</div>
+    </div>
+
+    <div class="modal" id="winModal">
+        <div class="modal-content">
+            <div class="celebration">🎉</div>
+            <h2>Félicitations Maman ! 🏆</h2>
+            <p>Vous avez vidé tout le plateau !</p>
+            <p>Score final: <span id="finalScore">0</span></p>
+            <button class="btn" onclick="newGame()">Nouvelle Partie</button>
+        </div>
+    </div>
+
+    <script>
+        let gameBoard = [];
+        let selectedCells = [];
+        let score = 0;
+        let gameMode = 'classique';
+        let moveHistory = [];
+        let hints = 3;
+        let level = 1;
+
+        // Initialisation du plateau
+        function initializeBoard() {
+            gameBoard = [];
+            // Générer les nombres initiaux (1-9, plus quelques 10+ pour la diversité)
+            const initialNumbers = [1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9];
+            
+            // Mélanger les nombres
+            for (let i = 0; i < 50; i++) {
+                const randomIndex = Math.floor(Math.random() * initialNumbers.length);
+                gameBoard.push(initialNumbers[randomIndex]);
+            }
+            
+            selectedCells = [];
+            renderBoard();
+        }
+
+        // Affichage du plateau
+        function renderBoard() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            gameBoard.forEach((number, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                
+                if (number !== null) {
+                    cell.className += ' number';
+                    cell.textContent = number;
+                    cell.onclick = () => selectCell(index);
+                    
+                    if (selectedCells.includes(index)) {
+                        cell.className += ' selected';
+                    }
+                } else {
+                    cell.className += ' empty';
+                }
+                
+                grid.appendChild(cell);
+            });
+        }
+
+        // Sélection d'une cellule
+        function selectCell(index) {
+            if (gameBoard[index] === null) return;
+            
+            if (selectedCells.includes(index)) {
+                selectedCells = selectedCells.filter(i => i !== index);
+            } else if (selectedCells.length < 2) {
+                selectedCells.push(index);
+            } else {
+                selectedCells = [index];
+            }
+            
+            renderBoard();
+            
+            if (selectedCells.length === 2) {
+                setTimeout(() => {
+                    checkPair();
+                }, 300);
+            }
+        }
+
+        // Vérification des paires
+        function checkPair() {
+            if (selectedCells.length !== 2) return;
+            
+            const [index1, index2] = selectedCells;
+            const num1 = gameBoard[index1];
+            const num2 = gameBoard[index2];
+            
+            const isValidPair = (num1 === num2) || (num1 + num2 === 10);
+            const isValidPosition = checkValidPosition(index1, index2);
+            
+            if (isValidPair && isValidPosition) {
+                // Sauvegarder pour l'annulation
+                moveHistory.push({
+                    board: [...gameBoard],
+                    score: score,
+                    cells: [index1, index2],
+                    numbers: [num1, num2]
+                });
+                
+                // Éliminer les nombres
+                gameBoard[index1] = null;
+                gameBoard[index2] = null;
+                
+                // Calcul des points
+                const points = (num1 + num2 === 10) ? 15 : 10;
+                score += points;
+                document.getElementById('score').textContent = score;
+                
+                // Animation de succès
+                showValidPair(index1, index2);
+                
+                updateStatus(`Excellente paire ! +${points} points`);
+                
+                // Vérifier si le plateau est vide
+                setTimeout(() => {
+                    if (gameBoard.every(cell => cell === null)) {
+                        showWinModal();
+                    } else if (!hasValidMoves()) {
+                        updateStatus("Plus de coups possibles ! Utilisez le bouton + pour ajouter des nombres.");
+                    }
+                }, 1000);
+            } else {
+                if (!isValidPair) {
+                    updateStatus("Ces nombres ne forment pas une paire valide !");
+                } else {
+                    updateStatus("Ces nombres ne sont pas adjacents !");
+                }
+            }
+            
+            selectedCells = [];
+            setTimeout(() => renderBoard(), 500);
+        }
+
+        // Vérification de la position valide
+        function checkValidPosition(index1, index2) {
+            const cols = 10;
+            const row1 = Math.floor(index1 / cols);
+            const col1 = index1 % cols;
+            const row2 = Math.floor(index2 / cols);
+            const col2 = index2 % cols;
+            
+            // Même ligne, adjacents horizontalement
+            if (row1 === row2 && Math.abs(col1 - col2) === 1) {
+                return true;
+            }
+            
+            // Même colonne, adjacents verticalement
+            if (col1 === col2 && Math.abs(row1 - row2) === 1) {
+                return true;
+            }
+            
+            // Fin de ligne et début de ligne suivante
+            if (row1 + 1 === row2 && col1 === cols - 1 && col2 === 0) {
+                return true;
+            }
+            if (row2 + 1 === row1 && col2 === cols - 1 && col1 === 0) {
+                return true;
+            }
+            
+            // Vérifier s'il y a un chemin avec des cases vides
+            return hasEmptyPath(index1, index2);
+        }
+
+        // Vérification du chemin avec cases vides
+        function hasEmptyPath(index1, index2) {
+            const cols = 10;
+            const row1 = Math.floor(index1 / cols);
+            const col1 = index1 % cols;
+            const row2 = Math.floor(index2 / cols);
+            const col2 = index2 % cols;
+            
+            // Même ligne, vérifier les cases entre
+            if (row1 === row2) {
+                const start = Math.min(col1, col2) + 1;
+                const end = Math.max(col1, col2);
+                for (let c = start; c < end; c++) {
+                    if (gameBoard[row1 * cols + c] !== null) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            // Même colonne, vérifier les cases entre
+            if (col1 === col2) {
+                const start = Math.min(row1, row2) + 1;
+                const end = Math.max(row1, row2);
+                for (let r = start; r < end; r++) {
+                    if (gameBoard[r * cols + col1] !== null) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            return false;
+        }
+
+        // Animation de paire valide
+        function showValidPair(index1, index2) {
+            const grid = document.getElementById('grid');
+            const cells = grid.children;
+            
+            cells[index1].classList.add('valid-pair');
+            cells[index2].classList.add('valid-pair');
+            
+            setTimeout(() => {
+                cells[index1].classList.remove('valid-pair');
+                cells[index2].classList.remove('valid-pair');
+            }, 1000);
+        }
+
+        // Ajouter une nouvelle ligne
+        function addNewRow() {
+            if (hasValidMoves()) {
+                updateStatus("Vous pouvez encore jouer ! Cherchez des paires possibles.");
+                return;
+            }
+            
+            const currentNumbers = gameBoard.filter(n => n !== null);
+            if (currentNumbers.length === 0) {
+                updateStatus("Plateau vide ! Vous avez gagné !");
+                return;
+            }
+            
+            // Ajouter les nombres existants à la fin
+            gameBoard.push(...currentNumbers);
+            
+            updateStatus("Nouveaux nombres ajoutés ! Continuez à jouer.");
+            renderBoard();
+        }
+
+        // Vérifier s'il y a des coups possibles
+        function hasValidMoves() {
+            for (let i = 0; i < gameBoard.length; i++) {
+                if (gameBoard[i] === null) continue;
+                
+                for (let j = i + 1; j < gameBoard.length; j++) {
+                    if (gameBoard[j] === null) continue;
+                    
+                    const num1 = gameBoard[i];
+                    const num2 = gameBoard[j];
+                    
+                    if ((num1 === num2 || num1 + num2 === 10) && checkValidPosition(i, j)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Utiliser un indice
+        function useHint() {
+            if (hints <= 0) {
+                updateStatus("Plus d'indices disponibles !");
+                return;
+            }
+            
+            for (let i = 0; i < gameBoard.length; i++) {
+                if (gameBoard[i] === null) continue;
+                
+                for (let j = i + 1; j < gameBoard.length; j++) {
+                    if (gameBoard[j] === null) continue;
+                    
+                    const num1 = gameBoard[i];
+                    const num2 = gameBoard[j];
+                    
+                    if ((num1 === num2 || num1 + num2 === 10) && checkValidPosition(i, j)) {
+                        selectedCells = [i, j];
+                        hints--;
+                        score = Math.max(0, score - 5);
+                        document.getElementById('score').textContent = score;
+                        renderBoard();
+                        updateStatus(`Indice utilisé ! -5 points. Indices restants: ${hints}`);
+                        return;
+                    }
+                }
+            }
+            
+            updateStatus("Aucune paire trouvée ! Utilisez le bouton + pour ajouter des nombres.");
+        }
+
+        // Annuler le dernier coup
+        function undoMove() {
+            if (moveHistory.length === 0) {
+                updateStatus("Aucun coup à annuler !");
+                return;
+            }
+            
+            const lastMove = moveHistory.pop();
+            gameBoard = lastMove.board;
+            score = lastMove.score;
+            selectedCells = [];
+            
+            document.getElementById('score').textContent = score;
+            renderBoard();
+            updateStatus("Coup annulé !");
+        }
+
+        // Changer de mode de jeu
+        function changeMode() {
+            const modes = ['classique', 'survie', 'dynamique', 'sprint'];
+            const currentIndex = modes.indexOf(gameMode);
+            gameMode = modes[(currentIndex + 1) % modes.length];
+            
+            document.getElementById('currentMode').textContent = `Mode: ${gameMode.charAt(0).toUpperCase() + gameMode.slice(1)}`;
+            
+            updateStatus(`Mode ${gameMode} activé !`);
+            newGame();
+        }
+
+        // Nouvelle partie
+        function newGame() {
+            score = 0;
+            hints = 3;
+            level = 1;
+            moveHistory = [];
+            document.getElementById('score').textContent = score;
+            document.getElementById('winModal').style.display = 'none';
+            
+            initializeBoard();
+            updateStatus("Nouvelle partie commencée ! Bonne chance Maman ! 💖");
+        }
+
+        // Afficher le modal de victoire
+        function showWinModal() {
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('winModal').style.display = 'block';
+        }
+
+        // Mettre à jour le statut
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        // Initialisation du jeu
+        window.onload = function() {
+            initializeBoard();
+            updateStatus("Bienvenue dans Ten Pairs ! Sélectionnez deux nombres identiques ou qui font 10 ! 💖");
+        };
+    </script>
+</body>
+</html>
