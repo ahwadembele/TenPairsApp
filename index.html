@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ten Pairs - Jeu pour Maman</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#b3e0ff">
     <style>
         * {
             margin: 0;
@@ -12,13 +14,16 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Baloo 2', 'Quicksand', 'Arial Rounded MT Bold', Arial, sans-serif;
+            background: linear-gradient(135deg, #b3e0ff 0%, #e0c3fc 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             touch-action: manipulation;
         }
+
+        /* Import police cartoon arrondie */
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600&family=Quicksand:wght@700&display=swap');
 
         /* Page d'accueil */
         .home-screen {
@@ -101,10 +106,218 @@
             display: none;
             flex-direction: column;
             height: 100vh;
+            background: linear-gradient(135deg, #e0f7fa 0%, #fceabb 100%);
+            position: relative;
         }
-
         .game-screen.active {
             display: flex;
+        }
+
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.7);
+            padding: 12px 24px;
+            border-bottom: 3px solid #b3e0ff;
+            font-family: 'Baloo 2', 'Quicksand', Arial, sans-serif;
+            font-size: 1.3rem;
+            color: #4facfe;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 2px 12px rgba(100,180,255,0.08);
+        }
+        .level-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #ffb347;
+            display: flex;
+            align-items: center;
+        }
+        .score {
+            font-size: 1.2em;
+            color: #4facfe;
+            font-weight: bold;
+        }
+        .moves {
+            font-size: 1.1em;
+            color: #7ed957;
+            font-weight: bold;
+        }
+        .menu-btn {
+            background: #fffbe7;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5em;
+            width: 40px;
+            height: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            color: #ffb347;
+            transition: background 0.2s;
+        }
+        .menu-btn:hover {
+            background: #ffe082;
+        }
+
+        .mascot {
+            position: absolute;
+            top: 70px;
+            right: 30px;
+            font-size: 2.5em;
+            z-index: 10;
+            filter: drop-shadow(0 2px 8px #fffbe7);
+            transition: transform 0.3s;
+        }
+        .mascot.celebrate {
+            animation: mascot-dance 1s infinite alternate;
+        }
+        @keyframes mascot-dance {
+            0% { transform: rotate(-10deg) scale(1.1); }
+            100% { transform: rotate(10deg) scale(1.2); }
+        }
+
+        .main-board {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0 0 0;
+        }
+        .board {
+            background: rgba(255,255,255,0.95);
+            border-radius: 24px;
+            padding: 18px 10px 10px 10px;
+            margin-bottom: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.10);
+            overflow-y: auto;
+            max-width: 420px;
+            min-width: 320px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 7px;
+            justify-content: center;
+        }
+        .cell {
+            aspect-ratio: 1;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em;
+            font-family: 'Baloo 2', 'Quicksand', Arial, sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            min-height: 38px;
+            box-shadow: 0 2px 8px rgba(100,180,255,0.08);
+            border: 3px solid #e0c3fc;
+            background: #fffbe7;
+            color: #4facfe;
+            transition: box-shadow 0.2s, border 0.2s, background 0.2s, color 0.2s, transform 0.2s;
+        }
+        .cell.number {
+            background: linear-gradient(135deg, #b3e0ff 0%, #fceabb 100%);
+            color: #4facfe;
+            border-color: #b3e0ff;
+        }
+        .cell.selected {
+            background: linear-gradient(135deg, #ffb6b9 0%, #fceabb 100%);
+            border-color: #ffb347;
+            box-shadow: 0 0 16px 4px #ffe082, 0 2px 8px #ffb6b9;
+            color: #e74c3c;
+            transform: scale(1.13);
+        }
+        .cell.valid-pair {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-color: #27ae60;
+            animation: pulse 0.5s ease-in-out;
+        }
+        .cell.empty {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .footer-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            background: rgba(255,255,255,0.7);
+            padding: 14px 0 10px 0;
+            border-top: 3px solid #b3e0ff;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -2px 12px rgba(100,180,255,0.08);
+        }
+        .btn {
+            padding: 13px 22px;
+            border: none;
+            border-radius: 22px;
+            font-size: 1.2em;
+            font-family: 'Baloo 2', 'Quicksand', Arial, sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            background: linear-gradient(135deg, #b3e0ff 0%, #fceabb 100%);
+            color: #4facfe;
+            box-shadow: 0 2px 8px rgba(100,180,255,0.08);
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+        }
+        .btn.hint {
+            background: linear-gradient(135deg, #fceabb 0%, #b3e0ff 100%);
+            color: #ffb347;
+        }
+        .btn.undo {
+            background: linear-gradient(135deg, #b3e0ff 0%, #ffb6b9 100%);
+            color: #e74c3c;
+        }
+        .btn.bomb {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #27ae60;
+        }
+        .btn.add {
+            background: linear-gradient(135deg, #7ed957 0%, #fceabb 100%);
+            color: #fffbe7;
+            font-size: 1.3em;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .status {
+            text-align: center;
+            color: #4facfe;
+            font-size: 1.2em;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            font-family: 'Baloo 2', 'Quicksand', Arial, sans-serif;
+        }
+
+        /* Mascotte animée dans le modal */
+        .celebration {
+            font-size: 3em;
+            margin-bottom: 20px;
+            animation: mascot-dance 1.2s infinite alternate;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .main-board { padding: 0; }
+            .board { min-width: 95vw; max-width: 99vw; }
+            .grid { grid-template-columns: repeat(8, 1fr); }
+            .cell { font-size: 1em; min-height: 28px; }
+            .footer-bar { gap: 8px; padding: 8px 0 6px 0; }
+            .header-bar { font-size: 1em; padding: 8px 8px; }
         }
 
         .header {
@@ -352,66 +565,70 @@
     <div class="home-screen" id="homeScreen">
         <div class="welcome-title">💖 Bon Courage Maman ! 💖</div>
         <div class="subtitle">Prête pour le défi Ten Pairs ?</div>
-        
         <div class="best-scores">
             <h3>🏆 Meilleurs Scores</h3>
             <div id="bestScoresList">
-                <div class="score-item">
-                    <span>1er place</span>
-                    <span id="score1">0</span>
-                </div>
-                <div class="score-item">
-                    <span>2ème place</span>
-                    <span id="score2">0</span>
-                </div>
-                <div class="score-item">
-                    <span>3ème place</span>
-                    <span id="score3">0</span>
-                </div>
+                <div class="score-item"><span>1er place</span><span id="score1">0</span></div>
+                <div class="score-item"><span>2ème place</span><span id="score2">0</span></div>
+                <div class="score-item"><span>3ème place</span><span id="score3">0</span></div>
             </div>
         </div>
-        
         <button class="start-btn" onclick="startGame()">🎮 Commencer à Jouer</button>
         <button class="start-btn" onclick="resetBestScores()">🔄 Réinitialiser Scores</button>
     </div>
 
-    <!-- Écran de jeu -->
+    <!-- Écran de jeu façon Numberzilla -->
     <div class="game-screen" id="gameScreen">
-        <div class="header">
-            <button class="back-btn" onclick="goHome()">← Accueil</button>
+        <!-- Barre supérieure -->
+        <div class="header-bar">
+            <div class="level-title">Niveau <span id="level">1</span></div>
             <div class="score">Score: <span id="score">0</span></div>
-            <div class="mode" id="currentMode">Mode: Classique</div>
+            <div class="moves">Coups: <span id="moves">0</span></div>
+            <button class="menu-btn" title="Menu/Paramètres">☰</button>
         </div>
-
-        <div class="game-container">
-            <div class="board">
+        <!-- Mascotte (affichée lors de la réussite) -->
+        <div class="mascot" id="mascot" style="display:none;">🐼</div>
+        <!-- Grille centrale -->
+        <div class="main-board">
+            <div class="board" id="board">
                 <div class="grid" id="grid"></div>
             </div>
-
-            <div class="controls">
-                <button class="btn add" onclick="addNewRow()">+ Ajouter</button>
-                <button class="btn hint" onclick="useHint()">💡 Indice</button>
-                <button class="btn undo" onclick="undoMove()">↩️ Annuler</button>
-                <button class="btn mode-btn" onclick="changeMode()">🎮 Mode</button>
-            </div>
-
             <div class="status" id="status">Sélectionnez deux nombres identiques ou qui font 10</div>
+        </div>
+        <!-- Barre inférieure -->
+        <div class="footer-bar">
+            <button class="btn hint" onclick="useHint()" title="Indice">💡</button>
+            <button class="btn undo" onclick="undoMove()" title="Annuler">↩️</button>
+            <button class="btn bomb" onclick="useBomb()" title="Bombe">💣</button>
+            <button class="btn add" onclick="addNewRow()" title="Ajouter une ligne">＋</button>
         </div>
     </div>
 
+    <!-- Modal de fin de niveau -->
     <div class="modal" id="winModal">
         <div class="modal-content">
             <div class="celebration">🎉</div>
-            <h2>Félicitations Maman ! 🏆</h2>
-            <p>Vous avez vidé tout le plateau !</p>
-            <p>Score final: <span id="finalScore">0</span></p>
+            <h2>Bravo ! Niveau terminé</h2>
+            <p>Score: <span id="finalScore">0</span></p>
+            <div id="stars"></div>
             <div id="newBestScoreMessage"></div>
-            <button class="btn" onclick="newGame()">Nouvelle Partie</button>
-            <button class="btn" onclick="goHome()">Retour Accueil</button>
+            <button class="btn" onclick="nextLevel()">Niveau suivant</button>
+            <button class="btn" onclick="goHome()">Accueil</button>
         </div>
     </div>
 
     <script>
+        // Enregistrement du service worker pour PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(function(registration) {
+                        // console.log('ServiceWorker enregistré avec succès:', registration.scope);
+                    }, function(err) {
+                        // console.log('Erreur lors de l\'enregistrement du ServiceWorker:', err);
+                    });
+            });
+        }
         let gameBoard = [];
         let selectedCells = [];
         let score = 0;
